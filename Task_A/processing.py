@@ -138,6 +138,49 @@ def append_end_screen(writer, endscreen_path, output_size):
         raise RuntimeError(f"No frames could be read from {endscreen_path}")
     return appended_frames
 
+# *** Purpose: Watermark Function
+def prepare_watermark_full(path, output_size):
+    wm = cv2.imread(str(path), cv2.IMREAD_UNCHANGED)
+    if wm is None:
+        raise RuntimeError(f"Could not read watermark image: {path}")
+    # Ensure BGRA shape
+    if wm.ndim == 2:
+        wm = cv2.cvtColor(wm, cv2.COLOR_GRAY2BGRA)
+    if wm.shape[2] == 3:
+        bgr = wm
+        alpha = 255 * np.ones((wm.shape[0], wm.shape[1]), dtype=np.uint8)
+        wm = np.dstack([bgr, alpha])
+    return cv2.resize(wm, output_size, interpolation=cv2.INTER_AREA)
+
+# *** Add Wtermark Function
+def add_watermark(frame, wm1, wm2, frame_count, switch_interval_frames=150, opacity=0.3):
+    """
+    wm1, wm2: BGRA numpy arrays already resized to output_size
+    frame: BGR frame (H, W, 3)
+    switch_interval_frames: frames between switches
+    opacity: fallback opacity when watermark alpha is fully opaque
+    """
+    watermark = wm1 if ((frame_count // switch_interval_frames) % 2 == 0) else wm2
+    if watermark is None:
+        return frame
+
+    wm_bgr = watermark[:, :, :3].astype(np.float32)
+    wm_alpha = watermark[:, :, 3].astype(np.float32) / 255.0
+
+    # If alpha is all ones, treat as opaque image and use black-key fallback
+    if np.allclose(wm_alpha, 1.0):
+        non_black_mask = np.max(wm_bgr, axis=2) > 3
+        blended = frame.copy().astype(np.float32)
+        blended_region = cv2.addWeighted(frame.astype(np.float32), 1.0 - opacity, wm_bgr, opacity, 0)
+        mask3 = np.repeat(non_black_mask[:, :, np.newaxis], 3, axis=2)
+        blended[mask3] = blended_region[mask3]
+        return blended.astype(np.uint8)
+
+    # Use alpha channel to composite
+    frame_f = frame.astype(np.float32)
+    alpha_3 = np.dstack([wm_alpha, wm_alpha, wm_alpha])
+    out = frame_f * (1.0 - alpha_3) + wm_bgr * alpha_3
+    return out.astype(np.uint8)
 
 # Purpose: Apply all five assignment operations to one complete input video.
 def process_one_video(
@@ -145,7 +188,7 @@ def process_one_video(
     output_path,
     talking_path,
     endscreen_path,
-    watermark_path,
+    watermark_paths,
     face_detector,
     night_threshold,
 ):
@@ -179,7 +222,10 @@ def process_one_video(
         fps = FALLBACK_FPS
 
     output_size = (width, height)
-    watermark = prepare_watermark(watermark_path, output_size)
+    # *** REMOVE watermark = prepare_watermark(watermark_paths, output_size)
+    wm1_full = prepare_watermark_full(watermark_paths[0], output_size)
+    wm2_full = prepare_watermark_full(watermark_paths[1], output_size)
+
 
     # MJPG in an AVI container is supported by standard OpenCV builds.
     writer = cv2.VideoWriter(
@@ -213,7 +259,11 @@ def process_one_video(
                 raise RuntimeError(f"No frames could be read from {talking_path}")
 
             frame = overlay_talking_video(frame, talking_frame)
-            frame = overlay_black_key_watermark(frame, watermark)
+            #*** REMOVE frame = overlay_black_key_watermark(frame, watermark)
+            switch_interval = int(round(fps * 5))  # *** BOTH watermark appearing ~5 seconds and switch between 2 
+            #... different images
+            frame = add_watermark(frame, wm1_full, wm2_full, processed_frames, switch_interval_frames=switch_interval)
+
 
             writer.write(frame)
             processed_frames += 1

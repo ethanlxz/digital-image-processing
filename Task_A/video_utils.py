@@ -87,11 +87,11 @@ def overlay_talking_video(main_frame, talking_frame):
 
 
 # Purpose: Load and resize a watermark once so it matches the output video.
-def prepare_watermark(watermark_path, output_size):
+def prepare_watermark(watermark_paths, output_size):
     """Return a full-frame BGR watermark at the requested size."""
-    watermark = cv2.imread(str(watermark_path), cv2.IMREAD_COLOR)
+    watermark = cv2.imread(str(watermark_paths), cv2.IMREAD_COLOR)
     if watermark is None:
-        raise RuntimeError(f"Could not read watermark image: {watermark_path}")
+        raise RuntimeError(f"Could not read watermark image: {watermark_paths}")
 
     width, height = output_size
     return cv2.resize(watermark, (width, height), interpolation=cv2.INTER_AREA)

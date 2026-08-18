@@ -95,15 +95,17 @@ def main():
 
     for index, input_path in enumerate(input_paths):
         # Videos 1/3 use watermark 1; videos 2/4 use watermark 2.
-        watermark_path = watermark_paths[index % len(watermark_paths)]
+        # *** Remove the "watermark_path = watermark_paths[index % len(watermark_paths)]" firstly
         output_path = create_available_output_path(output_directory, input_path)
 
+        # *** Pass both watermark paths so each video can show both watermarks over time ***
         process_one_video(
             input_path=input_path,
             output_path=output_path,
             talking_path=talking_path,
             endscreen_path=endscreen_path,
-            watermark_path=watermark_path,
+            #*** watermark_ path=watermark_paths ---> watermark_ paths=watermark_paths ***
+            watermark_paths=watermark_paths,
             face_detector=face_detector,
             night_threshold=args.night_threshold,
         )
@@ -112,4 +114,18 @@ def main():
 
 
 if __name__ == "__main__":
+    # *** File Path added-on to ensure the code can run and read the file in arg ***
+    import sys
+    sys.argv = [
+        "main.py",
+        "--inputs", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/alley.mp4",
+        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/office.mp4",
+        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/traffic.mp4",
+        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/singapore.mp4",
+        "--talking", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/talking.mp4",
+        "--endscreen", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/endscreen.mp4",
+        "--watermarks", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/watermark1.png",
+        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/watermark2.png",
+        "--output-dir", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/task_a_outputs"
+    ]
     main()
