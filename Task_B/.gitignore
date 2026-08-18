@@ -1,0 +1,16 @@
+# Generated artefacts (reproduced by python3 run_all.py).
+task_b_paragraphs/outputs/
+
+# Python bytecode.
+__pycache__/
+*.pyc
+*.pyo
+
+# OS junk.
+.DS_Store
+Thumbs.db
+
+# Editors / IDEs.
+.vscode/
+.idea/
+*.swp
