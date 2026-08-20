@@ -1,3 +1,5 @@
 .venv
 task_a_outputs/
 __pycache__/
+Task_A
+Task_B

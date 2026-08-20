@@ -5,6 +5,10 @@ from pathlib import Path
 import cv2
 import numpy as np
 
+TASK_A_DIRECTORY = Path(__file__).resolve().parent
+RESOURCE_DIRECTORY = TASK_A_DIRECTORY / "resources"
+VIDEO_EXTENSIONS = (".mp4", ".avi", ".mov", ".mkv")
+
 
 # ------------------------------ OVERLAY SETTINGS -----------------------------
 
@@ -13,10 +17,30 @@ OVERLAY_MARGIN = 20
 WATERMARK_OPACITY = 0.75
 
 
+# Purpose: Resolve absolute, current-folder, and Task_A-relative resource paths.
+def resolve_resource_path(file_path):
+    """Return a path from an absolute, current-folder, or Task_A-relative value."""
+    path = Path(file_path).expanduser()
+    if path.is_absolute():
+        return path
+
+    candidates = [Path.cwd() / path, TASK_A_DIRECTORY / path, RESOURCE_DIRECTORY / path]
+    if path.suffix == "":
+        candidates.extend(Path.cwd() / f"{path}{suffix}" for suffix in VIDEO_EXTENSIONS)
+        candidates.extend(TASK_A_DIRECTORY / f"{path}{suffix}" for suffix in VIDEO_EXTENSIONS)
+        candidates.extend(RESOURCE_DIRECTORY / f"{path}{suffix}" for suffix in VIDEO_EXTENSIONS)
+
+    for candidate in candidates:
+        if candidate.exists():
+            return candidate
+
+    return TASK_A_DIRECTORY / path
+
+
 # Purpose: Confirm that a required file exists before processing starts.
 def require_existing_file(file_path, label):
     """Return the file as a Path or raise a clear error if it is missing."""
-    path = Path(file_path)
+    path = resolve_resource_path(file_path)
     if not path.is_file():
         raise FileNotFoundError(f"{label} was not found: {path}")
     return path

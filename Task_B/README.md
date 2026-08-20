@@ -1,8 +1,46 @@
 # DIP Task B: Paragraph Extraction
 
-This program extracts paragraphs from `Converted Paper (8)/001.png` to
-`008.png`. It supports single-, double- and triple-column layouts and saves
-the results in column-by-column reading order.
+This folder contains the Task B paragraph-extraction program. The program reads
+the given paper images from `Task_B_Input/`, detects the paragraph regions, and
+saves each extracted paragraph into the output folder.
+
+## Files
+
+- `run_all.py` runs the full Task B paragraph-extraction program.
+- `scripts/config.py` contains the input folder, output folder, and detection
+  settings.
+- `scripts/histogram.py` contains the paragraph detection and cropping
+  functions.
+- `Task_B_Input/` contains the given input paper images, from `001.png` to
+  `008.png`.
+- `Task_B_Output/` contains the extracted paragraph images and is also the
+  default output folder.
+- `task_b_paragraphs/` contains another copy of the Task B program files.
+
+## Requirements
+
+Install the required Python libraries before running:
+
+```bash
+pip install opencv-python numpy
+```
+
+## How to run
+
+Run from inside the `Task_B` folder:
+
+```bash
+python run_all.py
+```
+
+The extracted paragraphs are saved in:
+
+```text
+Task_B_Output/paragraphs/<paper>/paragraph <number>.png
+```
+
+For example, paragraphs from `Task_B_Input/001.png` are saved in
+`Task_B_Output/paragraphs/001/`.
 
 ## Method
 
@@ -16,48 +54,17 @@ the results in column-by-column reading order.
 | Paper | Layout  | Paragraphs |
 |-------|---------|-----------:|
 | 001   | single  |  6 |
-| 002   | triple  |  8 |
-| 003   | double  |  7 |
-| 004   | double with spanning table |  8 |
+| 002   | triple  |  6 |
+| 003   | double  |  6 |
+| 004   | double with spanning table |  7 |
 | 005   | single  |  5 |
-| 006   | triple  |  8 |
-| 007   | double  |  **8** |
-| 008   | double  |  **8** |
-
-## How to run
-
-```bash
-cd task_b_paragraphs
-python3 run_all.py
-```
-
-Outputs are saved as
-`task_b_paragraphs/outputs/paragraphs/<paper>/paragraph <number>.png`.
-
-## Repository layout
-
-```
-.
-├── README.md
-├── .gitignore
-├── Converted Paper (8)/
-└── task_b_paragraphs/
-    ├── requirements.txt
-    ├── run_all.py
-    └── scripts/
-        ├── config.py
-        └── histogram.py
-```
-
-## Allowed libraries (per the assignment brief)
-
-- Python Standard Library
-- OpenCV
-- NumPy
+| 006   | triple  |  6 |
+| 007   | double  |  7 |
+| 008   | double  |  7 |
 
 ## Settings
 
-All thresholds live in `task_b_paragraphs/scripts/config.py`:
+All thresholds live in `scripts/config.py`:
 
 | Constant                | Default | Effect                                                           |
 |-------------------------|--------:|------------------------------------------------------------------|

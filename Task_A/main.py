@@ -14,13 +14,18 @@ import argparse
 from pathlib import Path
 
 from processing import create_face_detector, process_one_video
-from video_utils import create_available_output_path, require_existing_file
+from video_utils import (
+    create_available_output_path,
+    require_existing_file,
+    resolve_resource_path,
+)
 
 
 # ----------------------------- PROGRAM SETTINGS -----------------------------
 
 PROJECT_DIRECTORY = Path(__file__).resolve().parent
-DEFAULT_FACE_DETECTOR_PATH = PROJECT_DIRECTORY / "face_detector.xml"
+RESOURCE_DIRECTORY = PROJECT_DIRECTORY / "resources"
+DEFAULT_FACE_DETECTOR_PATH = RESOURCE_DIRECTORY / "face_detector.xml"
 
 # Videos below this average greyscale brightness are treated as nighttime.
 NIGHT_THRESHOLD = 85.0
@@ -34,9 +39,11 @@ def parse_arguments():
     )
     parser.add_argument(
         "--inputs",
+        "--input",
+        dest="inputs",
         nargs="+",
         required=True,
-        help="The main videos to process, in the desired order.",
+        help="The main video paths to process, in the desired order.",
     )
     parser.add_argument(
         "--talking",
@@ -62,8 +69,8 @@ def parse_arguments():
     )
     parser.add_argument(
         "--output-dir",
-        default="task_a_outputs",
-        help="Output directory (default: task_a_outputs).",
+        default="Task_A_Output",
+        help="Output directory (default: Task_A_Output).",
     )
     parser.add_argument(
         "--night-threshold",
@@ -89,22 +96,18 @@ def main():
     ]
     face_detector_path = require_existing_file(args.face_detector, "Face detector")
 
-    output_directory = Path(args.output_dir)
+    output_directory = resolve_resource_path(args.output_dir)
     output_directory.mkdir(parents=True, exist_ok=True)
     face_detector = create_face_detector(face_detector_path)
 
-    for index, input_path in enumerate(input_paths):
-        # Videos 1/3 use watermark 1; videos 2/4 use watermark 2.
-        # *** Remove the "watermark_path = watermark_paths[index % len(watermark_paths)]" firstly
+    for input_path in input_paths:
         output_path = create_available_output_path(output_directory, input_path)
 
-        # *** Pass both watermark paths so each video can show both watermarks over time ***
         process_one_video(
             input_path=input_path,
             output_path=output_path,
             talking_path=talking_path,
             endscreen_path=endscreen_path,
-            #*** watermark_ path=watermark_paths ---> watermark_ paths=watermark_paths ***
             watermark_paths=watermark_paths,
             face_detector=face_detector,
             night_threshold=args.night_threshold,
@@ -114,18 +117,4 @@ def main():
 
 
 if __name__ == "__main__":
-    # *** File Path added-on to ensure the code can run and read the file in arg ***
-    import sys
-    sys.argv = [
-        "main.py",
-        "--inputs", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/alley.mp4",
-        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/office.mp4",
-        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/traffic.mp4",
-        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/Recorded Videos (4)/singapore.mp4",
-        "--talking", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/talking.mp4",
-        "--endscreen", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/endscreen.mp4",
-        "--watermarks", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/watermark1.png",
-        "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/watermark2.png",
-        "--output-dir", "/Users/pierlow/.spyder-py3/digital-image-processing/Task_A/task_a_outputs"
-    ]
     main()
